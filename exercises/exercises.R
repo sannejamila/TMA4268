@@ -1,0 +1,227 @@
+---
+title: "Exercises - An introduction to statistical Learning"
+output: pdf_document
+date: '2022-04-06'
+---
+
+```{r setup, include=FALSE}
+
+#install.packages("knitr")
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.white=TRUE,prompt=FALSE,
+                      cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
+```
+
+Chapter 2
+
+Conceptual
+
+Task 1
+
+For each parts (a) through (d), indicate whether we would generally expect the performance of a flexible statistical learning method to be better or worse than an inflexible method. Justify your answer.
+
+a) The sample size n is extremely large, and the number of predictors p is small.
+
+A: Flexible methods performs quite well on data with huge number of samples, as it would not overfit the data such as an inflexible method would. Flexible methods are great at fitting the data when we have a huge sample size.
+
+b) The number of predictors p is extremely large, and the number of observations n is small. 
+
+A: Here an flexible method would most likely overfit the data, as we don`t have enough observations. Here an inflexible method would be performing way better. 
+
+c) The relationship between the predictors and response is highly non-linear.
+
+A: Inflexible models (such as linear regression) would make more assumptions about the data beforehand, and therefore perform bad for highly non-linear data. However, a flexible method would not use such an assumption and would therefore perform better on such data.With more degrees of freedom, a flexible method would fit better than an inflexible one.
+
+d) The variance of the error terms, $\sigma^2 = Var( \epsilon) $, is extremely high.
+
+A: A flexible method would fit to the noise in the error terms and increase variance, therefore an inflexible method would be a better choice here.
+
+Task 2
+
+Explain whether each scenario is a classification or regression problem, and indicate whether we are most interested in inference or prediction. Finally, provide n and p.
+
+a) We collect a set og data on the top 500 firms in the US. For each firm we record profit, number of employees, industry and the CEO salary. We are interested in understanding which factors affect CEO salary.
+
+This is a regression problem, as we have a response Y (CEO salary). However, it is an inference problem, not a prediction problem. We want to see which of our 3 predictors (profit, number of employees, industry) that has the highest effect on our response. The Y response is a qualitative response, and therefore a regression problem.Because we have the top 500 firms, we have 500 samples n.
+
+b) We are considering launching a new product and wish to know whether it will be a success or a failure. We collect data on 20 similar products that were previously launched. For each product we have recorded whether it was a success or a failure, price charged for the product, marketing budget, competition price, and ten other variables.
+
+This is a binary classification problem, as our response Y falls into two possible outcomes, (failure, success), We have 20 similar products, therefore 20 samples n. We have 13 predictors. This is also a prediction problem. 
+
+c) We are interested in predicting the % change in the USD/Euro exchange rate in relation to the weekly changes in the world stock markets. Hence we collect weekly data for all of 2012. For each week we record the % change in the USD/Euro, the % change in the US market, the % change in the British market, and the % change in the German market.
+
+This is a predicting and regression problem, as we want to predict a quantitative value (% change in USD/Euro exchange rate). We have 52 samples (52 weeks in 2012). We have 3 predictors p.
+
+Task 3
+
+Explain how bias, variance, training error, test error and Bayes (irreducible) error changes with more flexible statistical learning methods.
+
+Firstly, the irreducible error is constant, so it will remain the same for every model. The variance will increase for more flexible methods. This is because here, the variance says something about how much the model will change depending on what sample is the training data. For highly flexible models, this will be large, as it doesn`t usually have an assumtion beforehand, but rather looks directly only on the data provided. The inflexible models will have a lower variance, as it will mostly stay the same no matter which sample is used as training sample. The bias will start quite high for inflexible models, as highly inflexible models usually make a lot of assumptions (such as linearity), compared to flexible models that usually does not. The training error will always be higher than the test error, but will decrease for higher flexible models. However, the test error will be more U-shaped, as the test error can be quite large when you have a too flexible model, as it will be overfitted to the training data.(our procedure tries too hard to find patterns in the training data that are maybe only caused by chance rather than by true properties of the unknown f).
+
+Task 5
+
+What are the advantages and disadvantages of a very flexible (versus a less flexible) approach for regression or classification. Under what circumstances might a more flexible approach be preferred to a less flexible approach? When might a less flexible approach be preferred?
+
+It depends a lot about the situation. However, we know that for very linear data, a more inflexible method such as linear regression or KNN with a high K would be preferred. For situations with a high sample size, more flexible performs better - as the chance of overfitting becomes lower. For low samples, highly flexible models will likely overfit to the noise of the data, and therefore a more inflexible model is a better choice. The advantage of inflexible models are that they are quite easy to interpret, apposed to flexible models, which are more like a black box.
+
+The advantages of a very flexible approach are that it may give a better fit for non-linear models and it decreases the bias.
+
+The disadvantages of a very flexible approach are that it requires estimating a greater number of parameters, it follows the noise too closely (overfit) and it increases the variance.
+
+A more flexible approach would be preferred to a less flexible approach when we are interested in prediction and not the interpretability of the results.
+
+A less flexible approach would be preferred to a more flexible approach when we are interested in inference and the interpretability of the results.
+
+Task 6
+
+Describe the differences between a parametric and a non-parametric statistical learning approach. What are the advantages of a parametric approach to regression or classification (as opposed to a nonparametric approach) ? What are its disadvantages ?
+
+Parametric approaches are based on an assumption about the distribution of population from which the sample is taken. For nonparametric data, there is no assumption of the distribution of the sample data. 
+
+The advantage of a parametric approach is that we simplify the problem of finding a model f down to estimating a set of parameters, because it assumes a specific form of f. A non-parametric approach does not make such an assumption, and therefore needs a large sample size to estimate a good model for the problem.
+
+The disadvantage of a parametric approach is that f might be inaccurataly estimated if the assumption of the form is wrong, or overfitting the observations if more flexible models are used.
+
+Task 7d
+
+If the Bayes decision boundary in this problem is highly non-linear, then would we expect the best value of K to be large or small, why?
+
+As K becomes larger, the boundary becomes inflexible (linear). So in this case we would expect the best value for K to be small
+
+Applied
+
+Task 8
+
+```{r, eval=TRUE}
+
+library(ISLR)
+data(College)
+
+College <- College
+
+pairs(College[,1:10])    #Scatterplot matric of the first ten columns of the data.
+
+```
+
+
+```{r, eval = TRUE}
+
+boxplot(College$Private, College$Outstate)
+
+```
+```{r, eval=TRUE}
+
+Elite <- rep("No", nrow(College))
+Elite[College$Top10perc > 50] <- "Yes"
+ELite <- as.factor(Elite)
+College <- data.frame(College, ELite)
+summary(College$Elite)
+
+#Error.. Wrong output (?)
+```
+
+Task 9
+
+```{r, eval=TRUE}
+
+data(Auto)
+head(Auto)
+
+```
+We see that all variables are quantitative except for name.
+
+```{r, eval=TRUE}
+
+summary(Auto)
+
+```
+
+Min. and Max. are the ranges of each quantitative predictor.
+
+```{r, eval = TRUE}
+
+sapply(Auto[,-9], mean)   #Finds the mean of all predictors except the 9th one (name)
+
+```
+
+```{r, eval = TRUE}
+
+sapply(Auto[,-9], sd)   #Finds the standard deviation of all predictors except the 9th one (name)
+
+```
+
+```{r, eval=TRUE}
+
+sapply(Auto[-seq(10,85),-9], mean)   #Finds the mean of all predictors except the 9th one (name) for all observations except the ones between the 10th and the 85th
+
+```
+
+
+```{r, eval=TRUE}
+
+sapply(Auto[-seq(10,85),-9], sd)   #Finds the standard deviation of all predictors except the 9th one (name) for all observations except the ones between the 10th and the 85th
+
+```
+
+Using the full dataset, investigate the predictors graphically. Create some plots highlighting the realtionships among the predictors. Comment on your findngs.
+
+```{r, eval=TRUE}
+pairs(Auto)
+```
+Comment: 
+
+Suppose that we wish to predict gas mileage (mpg) on the basis of the other variables. Do your plots suggest that any of the other variables might be useful in predicting mpg? Justify your answer.
+
+It seems as if horsepower has a negative linear correlation with mpg, as well as displacement and weight - but these are highly correlated with each other, so only horsepower should be used.. It seems as cylinders and origin are good predictors as well. As 
+
+Task 10
+
+```{r, eval=TRUE}
+install.packages("ISLR2")
+library(ISLR2)
+Boston
+
+```
+The ?Boston tells us that we have 506 rows (samples) and 13 variables. The columns represents the predictors and the response.
+
+```{r, eval=TRUE}
+pairs(Boston)
+```
+Comment:
+
+is any predictors associated with crim? If so, explain the relationship.
+
+It seems that there is a relationship with medv, as for a lower value medv there is a higher per capita crime rate. It also seems the same wat for lstat. medv seems to be higher for lower for proportion of residential land zoned for lots over 25,000 sq.ft. 
+
+Do any of the suburbs of Boston appear to have particularly high crime rates ? Tax rates ? Pupil-teacher ratios ?
+
+```{r, eval=TRUE}
+
+hist(Boston$cri, breaks = 506)
+
+```
+Yes.It seems as some have particular higher crime rates than others.
+
+
+
+```{r, eval=TRUE}
+
+summary(Boston)
+```
+
+
+
+Chapter 3
+
+Conceptual
+
+Task 1
+
+Describe the null hypothesis to which the p-values given in Table 3.4 correspond. Explain what conclusions you can draw based on these p-values. Your explanation should be phrased in terms of sales, TV, radio and newspaper, rather than in terms of coefficients of the linear model.
+
+
+For the sales (intercept), which is sales for when there is no tv, radio and newspaper, because the p value is quite low (0.0001), there is huge evidence that the intercept is not 0, and we reject the null hypothesis. There is good evidence that there would be sales without tv, radio and newspapers.
+
+For the TV and radio, we have the same p-value (0.0001), which suggests that there is good evidence for these making sales bigger, however, for newspapers, the p-value is quite high, which suggests that newspapers does not have a huge effect on the sales.
+
+
