@@ -1,0 +1,220 @@
+---
+title: "Øving 1"
+output: html_document
+date: '2022-04-21'
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.white=TRUE,prompt=FALSE,
+                      cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
+```
+
+Problem 2
+
+ref: Figure 2.9 (p.31)
+
+a) Discuss whether a flexible or rigid method typically will have the highest test error.
+
+A: We see that the test error changes as an U-shape relative to flexibility. This means that both a very inflexible and a highly flexible model will have a high test error. This is explained by underfitting (too simple model) and overfitting (too complex model, adjusting to much to the noise in the data). Therefore we want to choose something in the middle, usually around the minimum of the test MSE. The training MSE will always decrease when we have a more fleixble model.
+
+b) Does a small variance imply that the data has been under or overfit?
+
+Underfit. Small variance in a model means that the model doesn´t change much when we change the training and test samples.
+
+c) Relate the problem og over- and underfitting to the bias-variance trade-off.
+
+Usually a underfitted model has a higher bias and a lower variance. Lower variance is explained by the model not changing much depending on the choice of the test and training split. The bias is usually quite high because the model makes assumptions about the data that might not be true (using a linear model for nonlinear data). Underfitting can also happen due to a low amount of data.
+
+Overfitted models usually has a high variance and a low bias. The high variance means that the model varies a lot depending on what data is used for training. This overfitting can be explained by the model being to adjusted to the noise in the data, ignoring the important patterns and being to concerned with noise. The low bias comes from the model not making as many assumptions and being more flexible. This is usually good for nonlinear data.
+
+The optimal model is a model that has low variance and low bias - thats why the bias-variance trade-off is so important.
+
+Problem 3
+
+```{r, eval=TRUE}
+library(ISLR)
+data(Auto)
+
+```
+a) View the data, what are the dimensions of the data? Which predictors are quantitative and qualitative?
+
+```{r, eval=TRUE}
+dim(Auto)
+```
+We have 392 samples, with 9 variables. 8 predictors, 1 response. 392 rows, 9 columns.
+
+```{r, eval=TRUE}
+summary(Auto)
+```
+
+mpg, cylinders, displacement, horsepower, wight, acceleration, year are quantitative variables (1-7). Origin (number between 1 and 3) and name are qualitative variables.
+
+b) What is the range (min, max) of each quantitative predictor?
+
+```{r, eval=TRUE}
+
+sapply(Auto[,seq(1:7)], range)
+
+```
+
+The output answers the question. Minimum value is the first, maximum value the last.
+
+c) What is the mean and standard deviation of each quantitative predictor?
+
+```{r, eval=TRUE}
+#The mean values of each quantitative predictor
+sapply(Auto[,seq(1:7)], mean)
+
+```
+
+```{r, eval=TRUE}
+#The standard deviations of each quantitative predictor
+sapply(Auto[,seq(1:7)], sd)
+
+```
+
+d) Now, make a new dataset called ReducedAuto where you removed the 10th through 85th observations. What is the range, mean and standard deviation of the quantitative predictors in ths reduced set?
+
+```{r, eval=TRUE}
+
+ReducedAuto = Auto[-seq(10:85),]
+
+dim(ReducedAuto)
+
+```
+
+As the dimensions of the rows is reduced by 84, we did the correct reduction.
+
+```{r, eval=TRUE}
+#The ranges of each quantitative predictor in the reduced dataset
+sapply(ReducedAuto[,seq(1:7)], range)
+```
+
+```{r, eval=TRUE}
+#The mean values of each quantitative predictor in the reduced dataset
+sapply(ReducedAuto[,seq(1:7)], mean)
+```
+
+```{r, eval=TRUE}
+#The standard deviation of each quantitative predictor in the reduced dataset
+sapply(ReducedAuto[,seq(1:7)], sd)
+```
+
+e) Using the full dataset, investigate the quantitative predictors graphically using a scatterplot. Do you see any strong relationships between the predictors?
+
+```{r, eval=TRUE}
+library(GGally)
+
+quantitative_data = Auto[,seq(1:7)]
+
+ggpairs(quantitative_data)
+```
+
+Comment: There seems to be a strong relationship between mpg and weight, mpg and displacement, mpg and horsepower.
+
+f) Suppose we wish to predict gas milage (mpg) on the basis of other variables. Make some plots showing the relationship between the mpg and the qualitative variables. Which predictors would you consider helpful when predicting mpg?
+
+```{r, eval=TRUE}
+ggplot(Auto, aes(as.factor(origin), mpg)) + geom_boxplot() + labs(title = " mpg vs origin")
+```
+```{r, eval=TRUE}
+ggplot(Auto, aes(as.factor(cylinders), mpg)) + geom_boxplot() + labs(title = " mpg vs cylinders")
+```
+From the first plot, there seems to be a strong relationship between mpg and weight, displacement and horsepower.
+
+The boxplots tells us that the 3rd origin has the highest mpg, and the 1st origin has the lowest. There is a clear dependence on this variable. The same goes for cylinders. 
+
+In conclusion, I would use weight, displacement, horsepower, cylinders and origin as predictors for mpg.
+
+g) Use only the covariance matrix to find the correlation between mpg and displacement, mpg and horsepower, and mpg and weight.
+
+Does it coincide with correlation matrix using cor()?
+
+```{r, eval=TRUE}
+#Using the built-in method
+
+cor(Auto[,seq(1:7)])
+```
+```{r, eval=TRUE}
+#Using the built-in method
+
+cov_mat = cov(Auto[,seq(1:7)])
+cov_mat
+
+```
+
+```{r, eval=TRUE}
+#Using the built-in method
+
+for(i in 1:7){
+  for(j in 1:7){
+    cov_mat[i,j] = cov_mat[i,j]/(sqrt(cov_mat[i,i])*sqrt(cov_mat[j,j]))
+  }
+}
+
+print(cov_mat)
+
+```
+
+Here we used $cor(X,Y) = \frac{cov(X,Y)}{\sigma_X \sigma_Y}$ to find the correlation matrix.
+
+Problem 4
+
+a) Use the mvrnorm() function from the MASS library to simulate 1000 values from multivariate normal distrubution with (see task sheet).
+
+```{r, eval=TRUE}
+library(MASS)
+
+#Creating the mu and the sigmas
+
+mu= c(2,3)
+
+sigma1 = matrix(data = c(1,0,0,1), nrow = 2, ncol = 2, byrow = FALSE)
+sigma2 = matrix(data = c(1,0,0,5), nrow = 2, ncol = 2, byrow = FALSE)
+sigma3 = matrix(data = c(1,2,2,5), nrow = 2, ncol = 2, byrow = FALSE)
+sigma4 = matrix(data = c(1,-2,-2,5), nrow = 2, ncol = 2, byrow = FALSE)
+
+
+mod1 = as.data.frame(mvrnorm(n = 1000, mu=mu, Sigma = sigma1))
+
+mod2 = as.data.frame(mvrnorm(n = 1000, mu=mu, Sigma = sigma2))
+
+mod3 = as.data.frame(mvrnorm(n = 1000, mu=mu, Sigma = sigma3))
+
+mod4 = as.data.frame(mvrnorm(n = 1000, mu=mu, Sigma = sigma4))
+
+```
+
+b) Make a scatterplot of the four sets of simulated datasets. Can you see which plot belongs to which distrubution?
+
+```{r, eval=TRUE}
+#First plot
+colnames(mod1) = c("x1","x2") 
+ggplot(mod1, aes(x1,x2)) + geom_point()
+
+```
+
+```{r, eval=TRUE}
+#Second plot
+colnames(mod2) = c("x1","x2") 
+ggplot(mod2, aes(x1,x2)) + geom_point()
+
+```
+
+```{r, eval=TRUE}
+#3rd plot
+colnames(mod3) = c("x1","x2") 
+ggplot(mod3, aes(x1,x2)) + geom_point()
+
+```
+
+```{r, eval=TRUE}
+#4th plot
+colnames(mod4) = c("x1","x2") 
+ggplot(mod4, aes(x1,x2)) + geom_point()
+
+```
+
+Problem 5
+
