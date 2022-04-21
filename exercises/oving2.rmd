@@ -1,0 +1,82 @@
+---
+title: "Øving 2"
+output: pdf_document
+date: '2022-04-21'
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.white=TRUE,prompt=FALSE,
+                      cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
+```
+
+Problem 1
+
+```{r, eval=TRUE}
+library(ISLR)
+
+Auto = subset(Auto, select = -name)  #Removing the name column form the dataset
+
+str(Auto)
+```
+
+We have 392 samples of 8 variables.
+
+Because origin is not a quantitative variable, but a qualitative encoded with 1, 2, and 3, we need to let R know that these variables are not numerical values so we do not get wrong model fits. We use the factor() function.
+
+```{r, eval=TRUE}
+Auto$origin = factor(Auto$origin)
+```
+
+a) Use the function ggpairs() from GGally to produce a scatterplot matrix which includes all of the variables in the data set,
+
+```{r, eval=TRUE}
+
+library(GGally)
+
+ggpairs(Auto)
+
+```
+
+b)
+
+Compute the correlation matrix between the variables. 
+
+```{r, eval=TRUE}
+
+ReducedAuto = Auto[, -8]   #Removing the 8th column (origin)
+
+corr_matrix = cor(ReducedAuto)
+
+corr_matrix
+
+```
+
+c) Use the lm() function to perform a multiple linear regression with mpg as the response and all other variables (except name) as the predictors. 
+
+Comment on:
+
+  i) Is there a relationship between the predictors and the response?
+  ii) Is there evidence that the weight of a car influences mpg? Interpret the regression coefficient $\beta_{weight}$.
+  iii) What does the coefficient for the year variable suggest?
+  
+  
+```{r, eval=TRUE}
+
+model = lm(mpg ~ ., data = Auto)
+
+summary(model)
+
+```
+
+i) We observe that the p-value is quite small (2.2e-16), meaning that the probability of observing $H_0$, that there is no relationship between the predictors and the response is very small, meaning that there definitely is a relationship. The $R^2$ is also quite high, meaning our model fits well for the data.
+
+ii) The p-value for weight is also very small (2e-16), meaning that this variable has a huge influence on the mpg. The $\beta_{weight} = -6.710 \cdot 10^{-3}$, meaning that for one unit increase in weight, we get a $\beta_{weight}$ decrease in mpg. So, a car that weights 1000 kg more than another car, would drive 6.7 miles less far per gallon of fuel.
+
+iii) The coefficient $\beta_{year} = 7.77 \cdot 10^{-1}$ suggest that for one unit increase in year, the mpg increases by 0.777. Newer models tend to be able to drive further per gallon of fuel than older models.
+
+d)
+
+
+
+
