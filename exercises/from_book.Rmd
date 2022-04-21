@@ -4,8 +4,11 @@ output: pdf_document
 date: '2022-04-21'
 ---
 
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.white=TRUE,prompt=FALSE,
+                      cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
 ```
 
 
@@ -29,7 +32,7 @@ c) The relationship between the predictors and response is highly non-linear.
 
 A: Inflexible models (such as linear regression) would make more assumptions about the data beforehand, and therefore perform bad for highly non-linear data. However, a flexible method would not use such an assumption and would therefore perform better on such data.With more degrees of freedom, a flexible method would fit better than an inflexible one.
 
-d) The variance of the error terms, $\sigma^2 = Var( \epsilon) $, is extremely high.
+d) The variance of the error terms, $\sigma^2 = Var( \epsilon)$, is extremely high.
 
 A: A flexible method would fit to the noise in the error terms and increase variance, therefore an inflexible method would be a better choice here.
 
@@ -174,9 +177,8 @@ It seems as if horsepower has a negative linear correlation with mpg, as well as
 Task 10
 
 ```{r, eval=TRUE}
-install.packages("ISLR2")
+#install.packages("ISLR2")
 library(ISLR2)
-Boston
 
 ```
 The ?Boston tells us that we have 506 rows (samples) and 13 variables. The columns represents the predictors and the response.
