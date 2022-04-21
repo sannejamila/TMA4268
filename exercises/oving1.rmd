@@ -1,6 +1,6 @@
 ---
 title: "Øving 1"
-output: html_document
+output: pdf_document
 date: '2022-04-21'
 ---
 
@@ -256,3 +256,4 @@ ist_of_matrices_with_deg_id <- lapply(1:nord, function(poly_degree) cbind(predic
 
 
 ```
+IKKE FERDIG
