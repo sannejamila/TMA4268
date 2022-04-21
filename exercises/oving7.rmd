@@ -1,0 +1,59 @@
+---
+title: "Oving7"
+output: pdf_document
+date: '2022-04-06'
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.white=TRUE,prompt=FALSE,
+                      cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
+```
+
+
+Task 1
+
+```{r, eval = TRUE}
+library(ISLR)
+
+#Extracting only the two variables from Auto
+ds = Auto[c("horsepower", "mpg")]
+n = nrow(ds)
+
+#Degrees we will look at
+deg = 1:4
+set.seed(1)
+
+#Training id
+tr = sample.int(n,n/2)
+
+
+#Plot of training data
+plot(ds[tr,], col = "darkgrey", main = "Polynomial Regression")
+
+
+```
+
+Task 2
+
+```{r, eval=TRUE}
+
+attach(Auto)
+
+#Linear model, with origin as a factor data type
+fit = lm(mpg ~ factor(origin))
+
+#Data frame of origins (1,2,3)
+new = data.frame(origin = as.factor(sort(unique(origin))))
+
+#Predicting based on new (fit, standard error, df, residual scale)
+pred = predict(fit, new, se=T)
+
+dat = data.frame(origin = new, mpg = pred$fit, lwr = pred$fit - 1.96*pred$se.fit, upr = pred$fit + 1.96*pred$se.fit)
+
+ggplot(dat, aes(x=origin, y = mpg))+ geom_point() + geom_segment(aes(x=origin, y = lwr, xend = origin, yend = upr)) + scale_x_discrete(labels = c("1" = "American", "2" = "European", "3" = "Japanese"))
+
+```
+Task 3
+
+
