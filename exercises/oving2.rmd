@@ -75,8 +75,195 @@ ii) The p-value for weight is also very small (2e-16), meaning that this variabl
 
 iii) The coefficient $\beta_{year} = 7.77 \cdot 10^{-1}$ suggest that for one unit increase in year, the mpg increases by 0.777. Newer models tend to be able to drive further per gallon of fuel than older models.
 
-d)
+d) Look again at the regression output from question c). Now we want to test whether the origin variable is important. How does this work for a factor variable with more than only two levels?
+
+As we have more than to types of origin, we need to look at the p-value as a whole. 
+
+```{r, eval=TRUE}
+
+anova(model)
+
+```
+
+We see that the p-value for origin is quite small, $1.639 \cdot 10^{-7}$, which implies that the probability of all the $\beta$ being zero is quite low. This means that there is a relationship between the origin and the response mpg. 
+
+e) Use the autoplot() function from the ggfortify package to produce diagnostic plots of the linear regression fit by setting smooth.colour = NA. Comment on any problems tou see with the fit. Do the residual plots suggest any unusually large outliers? Does the leverage plot identify any observations with unuasuallt high leverage?
+
+```{r, eval=TRUE}
+#install.packages("ggfortify")
+
+library(ggfortify)
+#?autoplot
+
+autoplot(model, smooth.colour = NA)
+
+```
+
+Residuals vs Leverage: Here we see that observation 14 is closes to the border of Cook`s distance. This observation has an unusually high leverage compared to the rest of the data, this observation should be doublechecked to be an outlier.
+
+Outliers are data points that are far from other data points. In other words, they’re unusual values in a dataset. Outliers are problematic for many statistical analyses because they can cause tests to either miss significant findings or distort real results.
+
+Scale-Location plot: This plot is used to check the assumption of equal variance among the residuals in our regression model. Ideally we want a horizontal line. Observation 326, 327 and 323 seems to be outliers here
+
+Normal Q-Q plot: This plot is used to determine if the residuals of the regression model are normally distributed. If the points fall roughly along a straight diagonal line, then we can assume the residuals are normally distributed. In our plot this fits good for most of the observations. 326, 327, 323 seems to be outliers here. However, this is not enough to declare that the residuals are non-normally distributed. 
+
+Residuals vs fitted plot: This plot is used to determine if the residuals exhibit non-linear patterns. Ideally we want a horizontal line. Here we have evidence of non-linearity.
+
+
+f) For beginners, it can be difficult to decide whether a QQ plot looks good or bad. A way to get a feeling of how bad a QQ plot may look, even when the normality assumptions is perfectly ok, we can use simulations: We can draw from the normal distribution and plot the QQ plot. Use the following code to repeat this six times:
+
+```{r, eval=TRUE}
+
+set.seed(2332)
+n = 100   #100 data points
+
+#par() can be used to set or query graphical parameters.
+
+#Mfrow = A vector of the form c(nr, nc). Subsequent figures will be drawn in an nr-by-nc array on the device by columns (mfcol), or rows (mfrow), respectively.
+
+par(mfrow = c(2,3)) 
 
 
 
+for(i in 1:6){
+  sim = rnorm(n)    #Generate a random normal distribution of 100 observations 
+  qqnorm(sim, pch = 1, frame = FALSE)  #Produces a QQ plot
+  qqline(sim, col = "blue", lwd = 1)
+} 
 
+```
+
+g) Fit another model for mpg, using only displacement, weight, year and origin as predictors, plus an interaction between year and origin (interactions can be included as year*origin, this ads the main effects and the interaction at once). Is there evidence that the interactions term is relevant? Give an interpretation of the result.
+
+```{r, eval=TRUE}
+
+spec_mod = lm(mpg ~ year*origin + weight + displacement, data = Auto)
+
+summary(spec_mod)
+
+```
+```{r, eval=TRUE}
+
+anova(spec_mod)
+
+```
+
+As last time, we need to use the anova() (F-test) function to interpret because of origin having more than two levels. 
+
+We see that the p-value for year:origin is quite low, 0.0001057, and therefore we can conclude that the year-effect depends on the origin of the car. We see that for origin2 and origin3 cars, the mpg has a steeper slope for year, $\beta_{year} = 0.6152$ for reference value (origin1). But $\beta_{year} = 0.6152 + 0.356$ for origin 3 and $\beta_{year} = 0.6152 + 0.5187$ for origin 2. 
+
+We can conclude that cars from outside America has a bigger mpg.
+
+h) Try a few different transformations of the variables ($\log(X), X^2, \sqrt{X}$). Perhaps you manage to improve the residual plots that you got in e)? Comment on your findings.
+
+```{r, eval=TRUE}
+
+#Preprocessing data
+
+Auto$sqrtmpg <- sqrt(Auto$mpg)
+Auto$mpg2 <- (Auto$mpg)^2
+Auto$logmpg <- log(Auto$mpg)
+
+
+transformed_model = lm(logmpg ~ ., data = Auto)
+
+autoplot(transformed_model, smooth.colour = NA)
+
+
+```
+
+Problem 2
+
+a) A core finding for the least squares estimator $\hat \beta$ of linear regression models is $$\hat \beta = (X^TX)^{-1}X^TY$$
+
+with $\hat \beta  \sim N_p(\beta,\sigma^2(X^TX)^{-1})$
+
+ i) Show that $\hat \beta$ has the distribution with the given mean and covariance matrix
+
+$$\begin{aligned} 1.\ E[\hat \beta] &= E[(X^TX)^{-1}X^TY] \\ &= (X^TX)^{-1}E[X^TY] \\ &=(X^TX)^{-1}E[X^T(\beta X + \epsilon)] \\&=(X^TX)^{-1}E[X^TX\beta+X^T\epsilon)]\\ &=(X^TX)^{-1}E[X^TX\beta]\\ &= E[\beta] \\ &= \beta \end{aligned}$$
+$$\begin{aligned} 2. \ Cov[\hat \beta] &= Cov[(X^TX)^{-1}X^TY] \\ &= (X^TX)^{-1}X^TCov[Y]((X^TX)^{-1}X^T)^T \\ &= (X^TX)^{-1}X^T\sigma^2I((X^TX)^{-1}X^T)^T \\ &= (X^TX)^{-1}X^T\sigma^2((X^TX)^{-1}X^T)^T \\ &= \sigma^2 (X^TX)^{-1} X^TX((X^TX)^{-1})^T \\ &= \sigma^2 (X^TX)^{-1} \end{aligned}$$
+ 
+ ii) What do you need to assume to get to this result?
+ 
+We need to assume that $Y$ is multivariate normal, the same holds for $\hat \beta$, because it is a linear transformation of $Y$.
+ 
+All components of a multivariate normal vector are themselves univariate normal. This means that $\hat \beta_j$ is normally distributed with expected valye given the $\hat \beta_j$ and the variance given by the jth diagonal element of $\sigma^2(X^TX)^{-1}$.
+ 
+
+b) What is the interpretation of a 95% confidence interval?
+
+A 95% CI for an estimator means that 95% of the time the true value of what is estimated lies in this interval.
+
+Find the 95% CI for $Y = 1 + 3X + \epsilon \sim N(0,1)$
+
+```{r, eval=TRUE}
+beta0 = 1
+beta1 = 3
+
+true_beta = c(beta0,beta1)
+true_sd = 1
+
+X = runif(100,0,1)   #100 values between 0 and 1, X is predictor values
+
+Xmat = model.matrix(~X, data = data.frame(X))  #Making X a matrix
+
+ci_int = ci_x = 0 #Counts how many times the true value is within the CI
+
+nsim = 1000 #Number of simulations
+
+for(i in 1:nsim){
+  y = rnorm(n=100, mean = Xmat %*% true_beta, sd = rep(true_sd, 100))
+  mod = lm(y ~ x, data = data.frame(y=y, x= X))
+  ci = confint(mod)
+  ci_int[i] = ifelse(true_beta[1] >= ci[1,1] && true_beta[1] <= ci[1,2],1,0)
+  ci_x[i] = ifelse(true_beta[2] >= ci[2,1] && true_beta[2] <= ci[2,2],1,0)
+}
+
+c(mean(ci_int), mean(ci_x))
+
+```
+
+
+c)  What is the interpretation of a 95% prediction interval? Write R code that shows the interpretation of a 95% PI. 
+
+95% of the time, the predicted value will lie in the prediction interval.
+
+
+```{r, eval=TRUE}
+beta0 = 1
+beta1 = 3
+
+true_beta = c(beta0,beta1)
+true_sd = 1
+
+x0 = c(1, 0.4)
+
+X = runif(100,0,1)   #100 values between 0 and 1, X is predictor values
+
+Xmat = model.matrix(~X, data = data.frame(X))  #Making X a matrix
+
+pi_y0 = 0 #Counts how many times the true value is within the CI
+
+nsim = 1000 #Number of simulations
+
+for(i in 1:nsim){
+  y = rnorm(n=100, mean = Xmat %*% true_beta, sd = rep(true_sd, 100))
+  mod = lm(y ~ x, data = data.frame(y=y, x= X))
+  y0 = rnorm(n=1, mean = x0 %*% true_beta, sd = true_sd)
+  pi = predict(mod, newdata = data.frame( x = x0[2]), interval = "predict")[2:3]
+  pi_y0[i] = ifelse(y0 >= pi[1] && y0 <= pi[2], 1, 0)
+}
+
+mean(pi_y0)
+
+```
+
+e) What is the difference between error and residual? What are the properties of the raw residuals? Why don´t we want to use the raw residuals for model check? What is our solution to this?
+
+The error is the natural error from your data ($\epsilon$), that can never be reduced or observed. Residual is calculated after running the regression model and is the differences between the observed values and the estimated values.The residuals is an estimation of the error. The residuals is the difference between the true response and the predicted value: $$\hat \epsilon = Y - \hat Y = (I - X(X^TX)^{-1}X^T)Y$$ 
+
+Properties of the raw residuals: Normally distributed with mean 0 and covariance $Cov(\hat \epsilon) = \sigma^2(I - X(X^TX)^{-1}X^T))$. This means that the residuals mat have different variance (depending on X) and may also be correlated.
+
+We want to check if our errors are independent, homoscedastic (same variance for each observation) and not dependent on covariates. We don´t want to use the raw residuals for model check, as these are predictors and mat have different variances and may be correlated.
+
+We standardize the residuals so they at least have equal variances.
