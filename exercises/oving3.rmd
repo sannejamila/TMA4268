@@ -1,0 +1,85 @@
+---
+title: "Øving 3"
+output: pdf_document
+date: '2022-04-28'
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.white=TRUE,prompt=FALSE,
+                      cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
+```
+
+Problem 1
+
+Problem 2
+
+Problem 3
+
+Problem 4
+
+Problem 5
+
+Problem 6
+
+ a) Produce numerical and graphical summaries of the weekly data. Do there appear to be any patterns?
+ 
+```{r, eval=TRUE}
+library(ISLR)
+data("Weekly")
+
+library(GGally)
+
+
+ggpairs(Weekly, aes(color=Direction))
+
+```
+
+There seems so be a huge correlation between year and volume.
+ 
+ b) Use the full dataset to perform a logistic regression with Direction as response and the five lag variables plus Volume as predictors. Use the summary() function to print the results. Which of these predictors appeart to be of interest?
+ 
+```{r, eval=TRUE}
+
+adj_weekly = Weekly[,-c(1,8)]
+
+model = glm(as.factor(Direction) ~ ., data=adj_weekly, family="binomial")
+
+summary(model)
+
+```
+We see that the lag2 variable has the lowest p-value, and this variable might be related to the direction response. However, it is not especially small (0.0296) and it might therefore just be small by chance.
+ 
+ c) Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression. 
+ 
+```{r, eval=TRUE}
+glm.probs = predict(model, type="response")
+glm.preds = ifelse(glm.probs > 0.5, "Up","Down")
+table(glm.preds, adj_weekly$Direction)
+
+```
+ 
+We see that the model performs well on putting the up values as up values, but performs bad at doing the same for down. It has a tendency to predict up rather than down. The overall performance would be:
+
+```{r, eval=TRUE}
+
+perf = (54 + 557)/(54 + 557 + 430 + 48)
+perf
+
+```
+ 
+ It has a 56,1% chance of predicting correct. The model is good at predicting when the market goes up, but bad at predicting when it goes down.
+ 
+ d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix 
+ 
+ e)
+ 
+ f)
+ 
+ g)
+ 
+ h)
+ 
+ i)
+ 
+ j)
