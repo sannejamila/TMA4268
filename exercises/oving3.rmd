@@ -12,13 +12,51 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.wh
 
 Problem 1
 
+ c) If the Bayes decision boundary is highly non-linear, would we expect the best value of K to be large or small? Why?
+ 
+When $k \to \infty$, the model looks more linear. Therefore we want a rather small K, but not too small.
+
 Problem 2
+
+b) Explain the assumptions made to use linear discriminant analysis to classify a new observation to be a genuine or fake bank note. Write down the classification rule for a new observation.
+
+In linear discriminant analysis we assume that the independent variables are normally distributed and that all of the classes has the same covariance matrix. If we do this assumption, we would classify a new observation into the discriminant function that is the largest. 
+
+We use the rule of classifying the observation to g if $\delta_g(x) -\delta_f(x) > 0$. Which can be written as
+
+$$X_o^T\hat\Sigma^{-1}(\mu_g-\mu_f) - 1/2\mu_g^T\hat\Sigma^{-1}\mu_g +1/2\mu_f^T\hat\Sigma^{-1}\mu_f + (\log{\pi_g}-\log{\pi_f}) > 0   $$
 
 Problem 3
 
+ a) On average, what fraction of people with an odds of 0.37 of defaulting on their credit card payment will in fact default?
+
+$$\frac{p}{1-p} = 0.37 \to p = 0.37/1.37 = 0.270$$
+So about 27% of people with an odds of 0.37 of defaulting on their credit card will in fact default.
+
+b) Suppose that an individual has a 16% chance of defaulting on her credit card payment. What are the odds that she will default?
+
+$$\frac{0.16}{1-0.16} = 0.19$$
 Problem 4
 
+Suppose we collect data for a group of students in a statistics class with variables $x_1$ = hours studied, $x_2$ = GPA, and $Y$ = recieve an A. We fit a logistic regression and produce the estimated coefficients $\hat \beta_0 = -6$, $\hat \beta_1 = 0.05$, $\hat \beta_2 = 1$.
+
+ a) Estimate the probability that a student who studies for 40h and has an GPA of 3.5 gets an A.
+ 
+$$P(Y= A, X_1= 40, X_2 = 3.5) = \frac{e^{-6+0.05 \cdot 40 + 1 \cdot 3.5}}{1+e^{-6+0.05 \cdot 40 + 1 \cdot 3.5}}  = 0.378$$
+ 
+ b) How many hours would the student in a) need to study to have a 50% probability of getting an A in the class?
+ 
+$$\frac{e^{-6+0.05 \cdot x + 1 \cdot 3.5}}{1+e^{-6+0.05 \cdot x + 1 \cdot 3.5}}  = 0.5 \to 0.05 x = 2.5 \to x = 50$$
 Problem 5
+We have a two-class problem, with classes 0 = non-disease and 1 = disease, and a method $p(x)$ that produces probability of disease for a covariate $x$. In a population we have investigated $N$ individuals and know the predicted probability of disease $p(x)$ and true disease status for these $N$.
+  
+  a) We choose the rule $p(x) > 0.5$ to classify disease. Define the sensitivity and the specificity of the test.
+  
+  b) Explain how you can construct a reciever operator curve (ROC) for your setting, and why that is a useful thing to do. In particular, why do we want to investigate different cut-offs of the probability of disease?
+  
+  c) Assume that we have a competing method $q(x)$ that also produces probability of disease for a covariate $x$. We get the information that the AUC of the $p(x)$ method is 0.6 and the AUC of the $q(x)$ is 0.7. What is 
+
+
 
 Problem 6
 
@@ -70,16 +108,150 @@ perf
  
  It has a 56,1% chance of predicting correct. The model is good at predicting when the market goes up, but bad at predicting when it goes down.
  
- d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix 
+ d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data.
  
- e)
+```{r, eval=TRUE}
+
+#Dividing into training and testing data
+train_id = (Weekly$Year < 2009)
+train = Weekly[train_id,]
+test = Weekly[!train_id,]
+
+#Choosing only Direction and lag2 as variables
+reduced_model = glm(Direction ~ Lag2,family = "binomial", data = train)
+
+#Predicting based on the testing data
+pred = predict(reduced_model, newdata = test, type = "response")
+
+glm.preds = ifelse(pred > 0.5, "Up","Down")
+table(glm.preds, test$Direction)
+
+```
  
- f)
+Lets check the accuracy:
+
+```{r, eval=TRUE}
+
+acc = (9+56)/(9 + 56 + 5 + 34)
+acc
+
+```
+
+We see that the performance is better.
+
+ e) Repeat d) using Linear discriminant analysis (LDA)
  
- g)
+```{r, eval=TRUE}
+library(MASS)
+
+model = lda(Direction ~ Lag2,data = train)
+pred = predict(model, newdata = test, type="response")$class  #We have to choose class to get numeric
+
+
+table(pred, test$Direction)
+
+```
  
- h)
+ f) Repeat d) using QDA
  
- i)
+```{r, eval=TRUE}
+
+model = qda(Direction ~ Lag2,data = train)
+lda.pred = predict(model, newdata = test, type="response")$class  #We have to choose class to get numeric
+
+
+table(lda.pred, test$Direction)
+
+```
  
- j)
+ This QDA classifier totally fails at predicting the Down trends, it only predicts "up" and is therefore a bad model for our problem.
+ 
+ g) Repeat d) using KNN with K = 1
+ 
+
+ 
+```{r, eval=TRUE}
+#install.packages("class")
+library(class)
+
+K = 1
+
+knn.train = as.matrix(train$Lag2)
+knn.test = as.matrix(test$Lag2)
+
+set.seed(123)
+
+KNN_model = knn(train=knn.train, test = knn.test, cl = train$Direction, k = K, prob = T) #prob = T will provide the probabilities for the classified direction.
+table(KNN_model, test$Direction)
+
+```
+ 
+ h) Find the best value of K. Report the confusion matrix and overall fraction of correct predictions for this value of K.
+ 
+```{r, eval=TRUE}
+K = 30
+knn.error = rep(NA,K)
+
+set.seed(234)
+for(k in 1:K){
+  knn.pred = knn(train = knn.train, tes = knn.test, cl = train$Direction, k = k)
+  knn.error[k] = mean(knn.pred != test$Direction)
+}
+
+knn.error.df = data.frame(k=1:K, error = knn.error)
+ggplot(knn.error.df, aes(x=k, y=error)) + geom_point(col = "blue") + geom_line(linetype = "dotted") 
+
+
+``` 
+K = 12 seems to give the lowest error. 
+
+```{r, eval=TRUE}
+
+K = 12
+
+KNN_model = knn(train=knn.train, test = knn.test, cl = train$Direction, k = K, prob = T)
+table(KNN_model, test$Direction)
+
+```
+
+We find the fraction of correct predictions.
+
+```{r, eval=TRUE}
+
+acc = (19+43)/(19 + 43 + 18 + 24)
+acc
+
+```
+
+ i) Which of these methods appear to provide the best results on this data?
+ 
+ The logistic regression with training and testing sets has the highest prediction accuracy.
+ 
+ j) Plot the ROC curves and calculate the UAC for the four methods. What can you say about the fit of these models?
+ 
+```{r, eval=TRUE}
+
+KNNprobs = attributes(KNN_model)$prob
+
+down = which(KNN_model == "Down")
+KNNprobs[down] = 1 - KNNprobs[down]
+
+library(pROC)
+library(plotROC)
+
+KNNroc = roc(response = as.numeric(test$Direction), predictor = KNNprobs, direction = "<")
+
+#dat = data.frame(Direction = test$Direction, knn = KNNprobs, glm = glm.probs)
+#dat_long = melt_roc(dat, "Direction", c("knn", "glm"))
+ #NOT done
+
+```
+
+
+
+
+
+
+ 
+ 
+ 
