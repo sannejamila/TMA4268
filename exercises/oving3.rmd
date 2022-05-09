@@ -26,6 +26,7 @@ We use the rule of classifying the observation to g if $\delta_g(x) -\delta_f(x)
 
 $$X_o^T\hat\Sigma^{-1}(\mu_g-\mu_f) - 1/2\mu_g^T\hat\Sigma^{-1}\mu_g +1/2\mu_f^T\hat\Sigma^{-1}\mu_f + (\log{\pi_g}-\log{\pi_f}) > 0   $$
 
+
 Problem 3
 
  a) On average, what fraction of people with an odds of 0.37 of defaulting on their credit card payment will in fact default?
