@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.wh
                       cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
 ```
 
-Problem 1
+__Problem 1__
 
 Explain how k-fold cross validation is implemented
 
@@ -30,7 +30,7 @@ Finding the optimal number of neighbours k in KNN regression. Finding the optima
 
 K in KNN classification. Test/train split in logistic regression.
   
-Problem 2
+__Problem 2__
 
 What are the advantages and disadvantages of k-fold cross-validation relative to
 
@@ -55,10 +55,87 @@ Very large k will lead to the estimator of test error having high variance and l
 For small k the estimator will have larger bias but lower variance.
 
 
-Problem 3
 
-Problem 4
 
-Problem 5
+__Problem 4__
 
-Problem 6
+We will calculate the probability that a given observation in our original sample is part of a bootstrap sample. 
+
+Our sample size is $n$.
+
+  a) We draw one observation from our sample. What is the probability of drawing observation i? And of not drawing observation i?
+  
+The probability of drawing observation i is simply 1 to $n$.
+  
+$$P(x = x_i) = \frac{1}{n} $$
+The probability of not drawing observation i is
+
+$$P(x \ne x_i) = 1 - P(x=x_i) = 1 - \frac{1}{n} = \frac{n-1}{n}$$
+  b) We make $n$ independent drawing with replacement. What is the probability of not drawing observation i in any of the $n$ drawings? What is then the probability that data point i is in our bootstrap sample?
+
+The probability of not drawing observation i in any of the $n$ drawing is 
+
+$$P(x \ne x_i) = (1- \frac{1}{n})^n $$
+The probability of the data point i being in our bootstrap sample is
+
+$$P(X \ in \ sample) = 1- P(x \ne x_i) = 1 - (1-\frac{1}{n})^n$$
+
+  c) When $n$ is large, we have that $(1-\frac{1}{n})^n \approx \frac{1}{e}$. Use this to give a numerical value for the probability that a specific observation i is in our bootstrap. 
+  
+$$P(X \ in \ sample) = 1- P(x \ne x_i) = 1 - (1-\frac{1}{n})^n \approx 1-  \frac{1}{e} =  0.632 $$
+  d) Write a short R code to check your results.
+  
+```{r, eval=TRUE}
+
+n = 100
+B = 10000
+
+j = 1
+
+res = rep(NA, B)
+
+for(b in 1:B){
+  res[b] = (sum(sample(1:n, replace=TRUE)== j)> 0)
+}
+mean(res)
+
+```
+
+__Problem 5__
+
+Explain with words and an algorithm how you would proceed to use bootstrapping to estimate the standard deviation and the 95% CI of one of the regression parameters in multiple linear regression. Comment on which assumptions you make for your regression model.
+
+I would first choose the number of boots $B$. Then I would proceed to draw with replacement a bootstrap sample, fit my model and calculate the estimator $\hat \beta_b$ and store this. Then I would proceed for every $b$ up to $B$ and store all of the $\hat \beta_1 ..... \hat \beta_B$. I would then calculate $\hat {SD}(\hat \beta) by:$
+
+$$\hat {SD}(\hat \beta) = \sqrt{\frac{1}{B-1}\sum_{b = 1}^B (\hat \beta_b- \frac{1}{B}\sum_{b=1}^B \hat \beta_b)^2}$$
+For the $95$% CI, we can calculate the $0.025$ and $0.975$ quantiles of the sample $\hat \beta_b$. 
+
+For the multiple linear model we assume that we have a linear relationship, multivariate normality, no or little multicollinearity, no auto-correlation and homoscedasticity.
+
+
+__Problem 6__
+
+Implement your algorithm from task 5 both using for-loop and using the boot function. Use out SLID data set and provide standard errors for the coefficient for age. Compare wih the theoretical value $(X^TX)^{-1}\hat \sigma^2$.
+
+```{r, eval=TRUE}
+#install.packages("car")
+library(car)
+library(boot)
+
+SLID = na.omit(SLID)
+n = dim(SLID)[1]
+
+SLID.lm = lm(wages ~ ., data = SLID)
+summary(SLID.lm)$coeff["age",]
+confint(SLID.lm)
+  
+  
+B = 100
+
+beta_hat = rep(NA, B)
+
+#IKKE ferdig
+
+```
+
+
