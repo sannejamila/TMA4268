@@ -37,7 +37,7 @@ MSE = sapply(degrees,function(d){
   mean((predict(model, ds[-train_id,])-ds[-train_id,2])^2)
 })
 
-legend("topright", legend = paste("d = ", deg), lty = 1, col = co)
+legend("topright", legend = paste("d = ", degrees), lty = 1, col = co)
 
 ```
 
