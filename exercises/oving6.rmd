@@ -51,4 +51,46 @@ ggplot(data = MSE, aes(x = degree, y = MSE)) + geom_line() + geom_point() + labs
 
 __Problem 2__
 
-Use factor(origin) for conversion to factor variable for the origin variable. Predict mpg by origin with a linear model. Plot the fitted values and approximate 95% confidence intervals.
+Use factor(origin) for conversion to factor variable for the origin variable. Predict mpg by origin with a linear model. Plot the fitted values and approximate 95% confidence intervals. Selecting se = T in predict() gives standard errors for prediction.
+
+```{r, eval=TRUE}
+
+l_model = lm(mpg ~ factor(origin), data = Auto)
+
+new_data = data.frame(origin = factor(Auto$origin))
+  
+predictions = predict(l_model, new_data, se = T)
+
+data = data.frame(origin = new_data, mpg = predictions$fit, lwr = predictions$fit - 1.96*predictions$se.fit, upr =  predictions$fit + 1.96*predictions$se.fit )
+
+ggplot(data, aes(x=origin, y = mpg)) + geom_point() + geom_segment(aes(x=origin, y = lwr, xend = origin, yend = upr)) + scale_x_discrete(labels = c("1=" = "American", "2=" = "European", "3=" = "Japanese"))
+
+```
+
+__Problem 5__
+
+Fit an additive model using the function gam from package gam. Call the result gamobject.
+
+mpg is the response, displace is a cubic spline with knit at 290, horsepower is a polynomial of degree 2, weight is a linear function, acceleration is a smoothing spline with df = 3, origin is a categorical variable. 
+
+Plot the resulting curves comment on what you see.
+
+```{r,eval=TRUE}
+library(gam)
+
+gamobject <- gam(mpg  ~ bs(displacement,knots = 290) + poly(horsepower, degree=2) + weight + s(acceleration, df = 3) + origin, data = Auto)
+
+plot(gamobject, se = TRUE, col = "blue")
+```
+
+We observe that displacement has a bigger CI for higher values, the same for the rest of the variables. Horsepower has a low CI for smaller values. weight varies a lot for very small and very high values. Origin has a huge effect on the response and acceleration varies a lot for high and low values.
+
+
+
+
+
+
+
+
+
+
