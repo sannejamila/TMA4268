@@ -273,7 +273,47 @@ error_rate
 
 ```
 
-  e)
+  e) Use the cv.tree() function to find the optimal tree size. Prune the tree according to the optimal tree size using the prune.misclass() function and print the result. Predict the response on the test data by using the pruned tree. What is the misclassification rate?
+  
+  
+```{r,eval=TRUE}
+
+set.seed(4268)
+
+cv.spam = cv.tree(tree_model, FUN = prune.misclass, K = 10)
+
+tree.min = which.min(cv.spam$dev)
+
+best = cv.spam$size[tree.min]
+
+plot(cv.spam$size, cv.spam$dev, type = "b")
+points(best, cv.spam$dev[tree.min], col = "blue", pch = 20)
+
+```
+
+It seems as a size of 6 is enough.
+
+
+```{r, eval=TRUE}
+
+pruned_spam = prune.misclass(tree_model, best = 6)
+
+plot(pruned_spam)
+text(pruned_spam)
+```
+```{r,eval=TRUE}
+
+spam_pred = predict(pruned_spam, spam.test, type =  "class")
+
+miss = table(spam_pred, spam.test$type)
+
+
+error = 1- sum(diag(miss))/sum(miss)
+error
+```
+
+  f) 
+
 
 
 
