@@ -1,0 +1,281 @@
+---
+title: "Øving 7"
+output: pdf_document
+date: '2022-05-30'
+---
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,message=FALSE,warning=FALSE,strip.white=TRUE,prompt=FALSE,
+                      cache=TRUE, size="scriptsize",fig.width=4, fig.height=3,fig.align = "center")
+```
+
+
+__Problem 1__
+
+  a) Provide a detailed explanation of the algorithm that is used to fit a regression tree. What is different for a classification tree?
+  
+We divide the predictor space into J distinct and non-overlapping regions $R_1, R_2 ... R_J$. For every observation that falls into the region $R_j$, we make the same prediction, which is simply the mean of the response values for the training observations in $R_j$. The goal is to find $R_j$ such that the RSS is minimized. $$RSS = \sum_{j=1}^J \sum_{i \in R_j}(y_i - \hat y_{R_j})$$
+
+Where $\hat y_{R_j})$ is the response for the training observations within the j`th box.
+
+For classification trees we predict a qualitative response rather than a quantitative one. We predict that each observation belongs to the most commonly occurring class of training observations in th region to which it belongs. We can NOT use RSS for binary splits. 
+  
+  b) What are the advantages and disadvantages of regression and classification trees?
+  
+Advantages:
+
+	• Simple and useful for interpretation.
+	• Easier to explain than regression.
+	• More closely mirrors human decision making.
+	• Bagging, random forests and boosting methods grow multiple trees, which results in improvements for prediction accuracy.
+	• Displayed graphically and there interpretable.
+	• Trees can easily handle qualitative predictors without the need to create dummy variables.
+
+Disadvantages:
+
+	• Bagging, random forests and boosting methods grow gives loss in interpretation.
+	• Not competitive with the best supervised learning methods in terms of prediction accuracy.
+	• Trees generally do not have the same level of predictive accuracy as other regression and classification approaches.
+  
+  c) What is the idea behind bagging and what is the role of the bootstrap? How do random forests improve that idea?
+  
+Bootstrap aggregation, or bagging is a procedure for reducing the variance of a statistival learning method. 
+
+Averaging a set of observations reduces the variance by a factor 1/n. Thi is not practical because we generally don`t have access to multiple training sets. In stead, we can bootstrap.
+
+We generate B different bootstrapped training sets. We then train our method on the bth bootstrapped training set in order to get the estimated f_b(x), the prediction at point x. We then average all the predictors.
+
+Random forests provide an improvement over bagged trees by way of a small tweak that decorrelated the trees. This reduces the variance when we average the trees.
+
+As in bagging, we build a number of decision trees on bootstrapped training samples. 
+
+When building these decision trees, each time a split in a tree is considered, a random selection of m predictors is chosen as split candidates from the full set of p predictors. The split is allowed to use only one of those m predictors.
+
+A fresh selection of m predictors is taken at each split, and typically we choose m = sqrt(p). That is the number of predictors considered at each split.
+  
+  d)
+  
+  e)
+
+
+__Problem 2__
+
+  a) Split the data into a training and a test set,
+
+```{r,eval=TRUE}
+library(ISLR)
+
+data("Carseats")
+
+set.seed(4268)
+
+n = nrow(Carseats)
+
+train = sample(1:n, 0.7 * nrow(Carseats), replace = F)
+test = (1:n)[-train]
+
+Carseats.train = Carseats[train,]
+Carseats.test = Carseats[-train,]
+
+head(Carseats)
+
+```
+
+
+  b) Fit a regression tree to the training set. Plot the tree, and interpret the results. What test MSE do you obtain?
+  
+```{r,eval=TRUE}
+#install.packages("tree")
+library(tree)
+
+tree.mod = tree(Sales ~ ., data = Carseats.train)
+
+summary(tree.mod)
+
+```
+```{r,eval=TRUE}
+plot(tree.mod)
+text(tree.mod)
+```
+
+It seems as the shelveloc and the price are the two most important variables in predicting the sales for our dataset, Age and advertising seems to be quite important as well. 
+
+Now we check the test MSE.
+
+```{r,eval=TRUE}
+
+preds = predict(tree.mod, newdata = Carseats.test)
+
+MSE = mean((Carseats.test$Sales - preds)^2)
+MSE
+
+```
+
+  c) Use cross-validation in order to determine the optimal level of tree complexity. Does pruning the tree improve the test MSE?
+  
+```{r,eval=TRUE}
+
+set.seed(4268)
+
+cv.Carseats = cv.tree(tree.mod, FUN = prune.tree, K = 10)
+
+tree.min = which.min(cv.Carseats$dev)
+
+best = cv.Carseats$size[tree.min]
+
+plot(cv.Carseats$size, cv.Carseats$dev, type = "b")
+points(best, cv.Carseats$dev[tree.min], col = "blue", pch = 20)
+
+```
+We observe that the trees of the size 11 and 12 have similar results as the 16th. We might choose 11 for a simpler tree.
+
+```{r, eval=TRUE}
+
+pruned_tree = prune.tree(tree.mod, best = 11)
+pruned_preds = predict(pruned_tree, newdata = Carseats.test)
+
+pruned_MSE = mean((pruned_preds-Carseats.test$Sales)^2)
+pruned_MSE
+
+```
+
+Which is a lower test MSE than the first tree. We plot the tree to view it.
+  
+```{r,eval=TRUE}
+plot(pruned_tree)
+text(pruned_tree)
+```
+  
+  d) Use the bagging approach with 500 trees in order to analyze the data. What test MSE do you obtain? Use the importance() function to determine which variables are most important.
+  
+```{r, eval=TRUE}
+#install.packages("randomForest")
+library(randomForest)
+
+bag.Carseats = randomForest(Sales ~ ., data=Carseats.train, ntree = 500, importance = TRUE)
+
+bag_preds = predict(bag.Carseats, newdata = Carseats.test)
+
+bag_MSE = mean((Carseats.test$Sales-bag_preds)^2)
+bag_MSE
+
+```
+
+We observe after bagging that the test MSE is even lower.
+
+```{r,eval=TRUE}
+
+importance(bag.Carseats)
+
+```
+```{r,eval=TRUE}
+
+varImpPlot(bag.Carseats)
+
+```
+
+We observe that Shelveloc, Price, age and advertising are the most important variables.
+ 
+  e) Use random forests to analyze the data. Include 500 trees and select 3 variables for each split. What test MSE do you obtain? Use the importance() function to determine which variables are most important. Describe the effect of $m$, the number of variables considered at each split, on the error rate obtained.
+  
+```{r, eval=TRUE}
+
+rf.Carseats = randomForest(Sales ~ ., data = Carseats.train,  mtry = 3, ntree = 500, importance = TRUE)
+
+yhat.rf = predict(rf.Carseats, newdata= Carseats.test)
+
+rf_MSE = mean((yhat.rf - Carseats.test$Sales)^2)
+rf_MSE
+
+```
+  
+We use p/m = 10/3 trees (about 3 trees). We get an MSE a little larger than Bagging. 
+
+```{r,eval=TRUE}
+
+importance(rf.Carseats)
+
+```
+
+```{r,eval=TRUE}
+
+varImpPlot(rf.Carseats)
+
+```
+  
+  f) Finally use boosting with 500 trees, an interaction depth d = 4 and a shrinkage factor $\lambda = 0.1$, which is the default for the gbm() function. Compare MSE to the other methods.
+
+```{r, eval=TRUE}
+#install.packages("gbm")
+library(gbm)
+
+r.boost = gbm(Sales ~ ., data = Carseats.train, distribution = "gaussian", n.tree = 500, interaction.depth = 4, shrinkage = 0.1)
+
+boost_preds = predict(r.boost, newdata = Carseats.test)
+
+boost_MSE = mean((boost_preds-Carseats.test$Sales)^2)
+boost_MSE
+
+```
+
+We observe that the MSE is even lower than for the other methods. 
+
+  g) What is the effect of the number of trees (ntree) on the test error. Plot the test MSE as a function of ntree for both the bagging and the random forest method. 
+  
+  
+__Problem 3__
+
+  b) Create a training set and a test set for the dataset.
+
+```{r,eval=TRUE}
+
+#install.packages("kernlab")
+
+library(kernlab)
+data(spam)
+n = nrow(spam)
+
+train_index = sample(1:n, 0.7 * nrow(spam), replace = F)
+
+spam.train = spam[train_index,]
+spam.test = spam[-train_index,]
+
+```
+
+  c) Fit a tree to the training data with type as the response and the rest of the variables as predictors. Study the results by using the summary() functuon. Also create a plot of the tree. How many terminal nodes does it have?
+
+```{r,eval=TRUE}
+library(tree)
+
+tree_model = tree(type ~ ., data= spam.train)
+summary(tree_model)
+
+```
+We have 13 terminal nodes.
+
+```{r,eval=TRUE}
+
+plot(tree_model)
+text(tree_model)
+
+```
+
+  d) Predict the response on the test data. What is the misclassification rate?
+  
+```{r,eval=TRUE}
+
+tree_preds = predict(tree_model, newdata = spam.test, type = "class")
+
+missclass_table = table(tree_preds, spam.test$type)
+
+error_rate = 1-sum(diag(missclass_table))/sum(missclass_table)
+error_rate
+
+```
+
+  e)
+
+
+
+
+
